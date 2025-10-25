@@ -17,21 +17,21 @@ let barSvg = d3.select("#bar-container").append("svg")
         .attr("height", svgHeight);
 let barGroup = barSvg.append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-let barOverlayGroup = barSvg.append("g") // inclass: add
+let barGroupOverlay = barSvg.append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-let brush = d3.brush() // inclass: add
+let brush = d3.brush()
     .on("start brush end", brushFxn);
 
-let scatterData = [], // inclass: add
-    filteredBarData = [], // inclass: add
-    points, // inclass: add
+let scatterData,
+    filteredBarData,
+    points,
     xScaleScatter,
     yScaleScatter,
     xScaleBar,
     yScaleBar,
-    brushRange, // inclass: add
-    selectedCyl = []; // inclass: add
+    brushRange,
+    selectedCyl = [];
 
 d3.csv("cars.csv")
     .then(function (data) {
@@ -42,7 +42,7 @@ d3.csv("cars.csv")
         scatterData = deepCopy(data);
 
         // cast strings as numbers
-        for (let i = 0; i < scatterData.length; i++) {
+        for (let i = 0; i < scatterData.length; i++) { 
             scatterData[i].hp = +scatterData[i].hp;
             scatterData[i].mpg = +scatterData[i].mpg;
         }
@@ -78,7 +78,7 @@ d3.csv("cars.csv")
             .text("Miles per gallon")
 
         // plot data
-        points = scatterGroup.selectAll("circle") // inclass: assign selection to points var
+        points = scatterGroup.selectAll("circle")
             .data(scatterData)
             .join("circle")
             .attr("cx", (d) => xScaleScatter(d.hp))
@@ -86,8 +86,8 @@ d3.csv("cars.csv")
             .attr("r", 5)
             .attr("class", "non-brushed");
 
-        // brush
-        scatterGroup.append("g") // inclass: add
+        // add brush
+        scatterGroup.append("g")
             .call(brush);
 
 
@@ -177,8 +177,8 @@ function getBarData(filteredData) {
     return returnData;
 }
 
-function brushFxn(event) { // inclass: add
-    // revert points to initial style the moment brush is active
+function brushFxn(event) {
+    // revert the appearance of points
     points.attr("class", "non-brushed");
 
     brushRange = undefined;
@@ -192,26 +192,27 @@ function brushFxn(event) { // inclass: add
         }
     }
 
-    // render changes to charts in real time
+    // render changes in real-time
     update();
 }
 
-function clickFxn(event) { // inclass: add
-    let clickedCly = +event.target.__data__.cyl;
+function clickFxn(event) {
+    console.log(event);
+    let clickedCyl = +event.target.__data__.cyl;
 
-    if (!selectedCyl.some((e) => e == clickedCly)) {
-        selectedCyl.push(clickedCly);
+    if (!selectedCyl.some((e) => e == clickedCyl)) {
+        selectedCyl.push(clickedCyl);
         selectedCyl.sort();
     } else {
-        let idx = selectedCyl.indexOf(clickedCly);
+        let idx = selectedCyl.indexOf(clickedCyl);
         selectedCyl.splice(idx, 1);
     }
 
-    // render changes to charts in real time
+    // render changes in real-time
     update();
 }
 
-function selectionFilter(d) { // inclass: add
+function selectionFilter(d) {
     // checks whether each point meets the current selection criteria
     // get only points inside of brush AND in selected set of cyl values
     if (brushRange && selectedCyl.length > 0) {
@@ -229,18 +230,18 @@ function selectionFilter(d) { // inclass: add
     }
 }
 
-function update() { // inclass: add
-    // style brushed points in scatterplot
+function update() {
+    // scatter
     points.attr("class", "non-brushed");
     points.filter(selectionFilter)
         .attr("class", "brushed");
 
-    // filter bar data
+    // bar
     let filteredScatterData = scatterData.filter(selectionFilter);
-        filteredBarData = getBarData(filteredScatterData);
+    filteredBarData = getBarData(filteredScatterData);
 
     // foreground bars
-    barOverlayGroup.selectAll("rect")
+    barGroupOverlay.selectAll("rect")
         .data(filteredBarData)
         .join("rect")
         .attr("class", "brushed")
@@ -249,27 +250,4 @@ function update() { // inclass: add
         .attr("width", xScaleBar.bandwidth())
         .attr("height", (d) => height - yScaleBar(d.count))
         .on("click", clickFxn);
-
-    // text indicators for selections
-    console.log(brushRange, selectedCyl);
-    if (!brushRange) {
-        scatterSvg.selectAll(".brush-indicator")
-            .remove();
-    } else {
-        scatterSvg.append("g")
-            .attr("transform", `translate(${width / 2}, 20)`)
-            .attr("class", "brush-indicator label")
-            .append("text")
-            .text("brush active");
-    }
-    if (selectedCyl.length == 0) {
-        barSvg.selectAll(".pointer-indicator")
-            .remove();
-    } else {
-        barSvg.append("g")
-            .attr("transform", `translate(${width / 2}, 20)`)
-            .attr("class", "pointer-indicator label")
-            .append("text")
-            .text("pointer active");
-    }
 }

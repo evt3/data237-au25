@@ -47,6 +47,7 @@ install.packages("ggdist")
 install.packages("tidyr")
 install.packages("patchwork")
 install.packages("tidybayes")
+install.packages("brms")
 #install.packages("glmmTMB")
 
 ```
@@ -72,7 +73,7 @@ library(patchwork)
 ```{r}
 # Download the dataset and change the path if needed
 
-df <- read_csv("../data/insurance.csv")
+df <- read_csv("../../data/insurance.csv")
 head(df)
 summary(df)
 ```
